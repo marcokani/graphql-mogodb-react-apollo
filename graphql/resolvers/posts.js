@@ -7,7 +7,7 @@ module.exports = {
   Query: {
     async getPosts() {
       try {
-        const posts = await Post.find().sort({createdAt:-1});
+        const posts = await Post.find().sort({ createdAt: -1 });
         return posts;
       } catch (err) {
         throw new Error(err);
@@ -40,6 +40,11 @@ module.exports = {
 
       const post = await newPost.save();
 
+      // subscription
+      context.pubsub.publish('NEW_POST',{
+        newPost:post
+      })
+
       return post;
     },
     async deletePost(_, { postId }, context) {
@@ -57,14 +62,14 @@ module.exports = {
         throw new Error(err);
       }
     },
-    likePost:async(_,{postId},context)=>{
+    likePost: async (_, { postId }, context) => {
       const { username } = checkAuth(context);
       const post = await Post.findById(postId);
-      if(post){
-        if(post.likes.find(like=>like.username===username)){
-          post.likes=post.likes.filter(like=>like.username!==username);
+      if (post) {
+        if (post.likes.find(like => like.username === username)) {
+          post.likes = post.likes.filter(like => like.username !== username);
           await post.save();
-        }else{
+        } else {
           post.likes.push({
             username,
             createdAt: new Date().toISOString()
@@ -72,10 +77,15 @@ module.exports = {
         }
         await post.save();
         return post;
-      }else{
+      } else {
         throw new UserInputError('Post no encontrado')
       }
 
+    }
+  },
+  Subscription: {
+    newPost: {
+      subscribe: (_, __, { pubsub }) => pubsub.asyncIterator('NEW_POST')
     }
   }
 };
