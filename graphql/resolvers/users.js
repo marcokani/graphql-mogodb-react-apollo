@@ -33,14 +33,14 @@ module.exports = {
       const user = await User.findOne({ username });
 
       if (!user) {
-        errors.general = 'User not found';
-        throw new UserInputError('User not found', { errors });
+        errors.general = 'Usuario no existe...';
+        throw new UserInputError('Usuario no existe...', { errors });
       }
 
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
-        errors.general = 'Wrong crendetials';
-        throw new UserInputError('Wrong crendetials', { errors });
+        errors.general = 'Credencial incorrecto...';
+        throw new UserInputError('Credencial incorrecto...', { errors });
       }
 
       const token = generateToken(user);
